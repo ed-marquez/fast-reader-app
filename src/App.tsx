@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ReaderSession } from './components/ReaderSession';
 import { Plus, X } from 'lucide-react';
 import './index.css';
@@ -10,9 +10,29 @@ interface Tab {
 }
 
 function App() {
-  const [tabs, setTabs] = useState<Tab[]>([{ id: '1', name: 'Article 1', text: '' }]);
-  const [activeTabId, setActiveTabId] = useState<string>('1');
+  const [tabs, setTabs] = useState<Tab[]>(() => {
+    const saved = localStorage.getItem('fast-reader-tabs');
+    return saved ? JSON.parse(saved) : [{ id: '1', name: 'Article 1', text: '' }];
+  });
+  
+  const [activeTabId, setActiveTabId] = useState<string>(() => {
+    const saved = localStorage.getItem('fast-reader-active-tab');
+    // Verify the saved active ID actually exists in the saved tabs
+    const savedTabs = localStorage.getItem('fast-reader-tabs');
+    const tabsList = savedTabs ? JSON.parse(savedTabs) : [{ id: '1' }];
+    return saved && tabsList.some((t: Tab) => t.id === saved) ? saved : tabsList[0].id;
+  });
+  
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
+
+  // Persistence effects
+  useEffect(() => {
+    localStorage.setItem('fast-reader-tabs', JSON.stringify(tabs));
+  }, [tabs]);
+
+  useEffect(() => {
+    localStorage.setItem('fast-reader-active-tab', activeTabId);
+  }, [activeTabId]);
 
   const addTab = () => {
     if (tabs.length >= 10) return;
@@ -36,10 +56,22 @@ function App() {
   };
 
   const updateTabText = useCallback((id: string, newText: string) => {
+    // 10,000 word limit
+    let processedText = newText;
+    const words = newText.split(/\s+/).filter(w => w.length > 0);
+    
+    if (words.length > 10000) {
+      // Reconstruct text from the first 10,000 words
+      // We try to preserve original spacing where possible but simple join is safer for now
+      // A more robust approach would be to find the index of the 10000th word end in string
+      // But for this requirement, splitting and joining is sufficient and safe
+      processedText = words.slice(0, 10000).join(' ');
+    }
+
     setTabs(prev => {
       const tab = prev.find(t => t.id === id);
-      if (tab && tab.text === newText) return prev;
-      return prev.map(t => t.id === id ? { ...t, text: newText } : t);
+      if (tab && tab.text === processedText) return prev;
+      return prev.map(t => t.id === id ? { ...t, text: processedText } : t);
     });
   }, []);
 

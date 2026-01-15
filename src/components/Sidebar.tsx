@@ -84,6 +84,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
       </div>
+
+      <div style={{ 
+        padding: '0.75rem 1rem', 
+        borderTop: '1px solid var(--border-color)',
+        fontSize: '0.8rem',
+        color: '#666',
+        display: 'flex',
+        justifyContent: 'space-between',
+        background: 'rgba(0,0,0,0.1)'
+      }}>
+        <span>{words.length.toLocaleString()} / 10,000 words</span>
+        {words.length >= 10000 && <span style={{ color: '#ef4444', fontWeight: 600 }}>Limit reached</span>}
+      </div>
     </div>
   );
 };
