@@ -35,13 +35,12 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
     setFontSize 
   } = useReader({ initialWpm: 300 });
 
-  // Initialize text on mount
+  // Sync text with initialText if it changes from outside
   useEffect(() => {
-    if (initialText !== text) {
+    if (initialText !== undefined && initialText !== text) {
       setText(initialText);
     }
-    // eslint-disable-next-line
-  }, []); // Run once on mount
+  }, [initialText]); 
 
   // Sync text changes back to parent
   useEffect(() => {
@@ -58,7 +57,13 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
   const currentWord = words[currentIndex] || '';
 
   return (
-    <div style={{ display: isActive ? 'flex' : 'none', width: '100%', height: '100%' }}>
+    <div style={{ 
+      display: isActive ? 'flex' : 'none', 
+      width: '100%', 
+      height: '100%', 
+      overflow: 'hidden',
+      flexDirection: 'row' 
+    }}>
       
       <Sidebar 
         isOpen={isSidebarOpen}
@@ -69,35 +74,84 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
         onSeek={seek}
       />
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-         {/* Toggle Sidebar */}
-        <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 10 }}>
+      <main style={{ 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        position: 'relative',
+        minWidth: 0, // Critical for flex items to prevent overflow
+        height: '100%',
+        background: 'var(--bg-color)'
+      }}>
+         {/* Toggle Sidebar Button */}
+        <div style={{ 
+          position: 'absolute', 
+          top: '0.75rem', 
+          left: '0.75rem', 
+          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        }}>
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-            style={{ padding: '0.5rem', background: 'transparent', border: 'none', color: '#666' }}
-            title="Toggle Sidebar"
+            style={{ 
+              padding: '0.5rem', 
+              background: 'rgba(255,255,255,0.05)', 
+              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              color: '#888',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
           >
-            {isSidebarOpen ? <PanelLeftClose size={24} /> : <PanelLeftOpen size={24} />}
+            {isSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
           </button>
         </div>
 
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div 
+          onClick={togglePlay}
+          onKeyDown={(e) => {
+            if (e.code === 'Space') {
+              e.preventDefault();
+              togglePlay();
+            }
+          }}
+          tabIndex={0}
+          style={{ 
+            flex: 1, 
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'center', 
+            justifyContent: 'center',
+            minHeight: 0, // Critical for nested flex
+            cursor: 'pointer',
+            outline: 'none'
+          }}
+          title="Click or press Space to Play/Pause"
+        >
           {words.length > 0 ? (
             <ReaderDisplay word={currentWord} fontSize={fontSize} />
           ) : (
-             <div style={{ color: '#666' }}>Paste text in sidebar to begin</div>
+            <div style={{ color: '#666', fontSize: '1.2rem' }}>
+              Paste text in the sidebar to start reading
+            </div>
           )}
         </div>
 
-        <Controls 
-          isPlaying={isPlaying}
-          onTogglePlay={togglePlay}
-          wpm={wpm}
-          setWpm={setWpm}
-          fontSize={fontSize}
-          setFontSize={setFontSize}
-        />
-      </div>
+        <div style={{ flexShrink: 0 }}>
+          <Controls 
+            isPlaying={isPlaying}
+            onTogglePlay={togglePlay}
+            wpm={wpm}
+            setWpm={setWpm}
+            fontSize={fontSize}
+            setFontSize={setFontSize}
+          />
+        </div>
+      </main>
     </div>
   );
 };

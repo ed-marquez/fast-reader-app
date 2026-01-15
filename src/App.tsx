@@ -42,39 +42,50 @@ function App() {
         borderBottom: '1px solid #333',
         padding: '0.5rem 1rem 0',
         gap: '0.5rem',
-        overflowX: 'auto'
+        alignItems: 'center'
       }}>
-        {tabs.map(tab => (
-          <div 
-            key={tab.id}
-            onClick={() => setActiveTabId(tab.id)}
-            style={{
-              padding: '0.6rem 1rem',
-              background: activeTabId === tab.id ? '#222' : 'transparent',
-              color: activeTabId === tab.id ? '#fff' : '#888',
-              borderTopLeftRadius: '8px',
-              borderTopRightRadius: '8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              border: activeTabId === tab.id ? '1px solid #333' : '1px solid transparent',
-              borderBottom: 'none',
-              minWidth: '120px',
-              justifyContent: 'space-between'
-            }}
-          >
-            <span style={{ fontSize: '0.9rem' }}>{tab.name}</span>
-            {tabs.length > 1 && (
-              <X 
-                size={14} 
-                className="tab-close"
-                onClick={(e) => removeTab(e, tab.id)}
-                style={{ opacity: 0.6 }}
-              />
-            )}
-          </div>
-        ))}
+        <div style={{
+          display: 'flex',
+          gap: '0.5rem',
+          overflowX: 'auto',
+          flex: 1,
+          scrollbarWidth: 'none', // Hide scrollbar for cleaner look
+          msOverflowStyle: 'none'
+        }}>
+          {tabs.map(tab => (
+            <div 
+              key={tab.id}
+              onClick={() => setActiveTabId(tab.id)}
+              style={{
+                padding: '0.6rem 1rem',
+                background: activeTabId === tab.id ? '#222' : 'transparent',
+                color: activeTabId === tab.id ? '#fff' : '#888',
+                borderTopLeftRadius: '8px',
+                borderTopRightRadius: '8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                border: activeTabId === tab.id ? '1px solid #333' : '1px solid transparent',
+                borderBottom: 'none',
+                minWidth: '120px',
+                justifyContent: 'space-between',
+                flexShrink: 0 // Prevent shrinking
+              }}
+            >
+              <span style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tab.name}</span>
+              {tabs.length > 1 && (
+                <X 
+                  size={14} 
+                  className="tab-close"
+                  onClick={(e) => removeTab(e, tab.id)}
+                  style={{ opacity: 0.6 }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+        
         <button 
           onClick={addTab} 
           style={{ 
@@ -83,7 +94,8 @@ function App() {
             padding: '0.5rem', 
             display: 'flex', 
             alignItems: 'center',
-            color: '#888'
+            color: '#888',
+            flexShrink: 0
           }}
           title="New Tab"
         >
@@ -92,14 +104,16 @@ function App() {
       </div>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         {tabs.map(tab => (
-           <ReaderSession
-             key={tab.id}
-             isActive={activeTabId === tab.id}
-             initialText={tab.text}
-             onTextChange={(val) => updateTabText(tab.id, val)}
-           />
+           activeTabId === tab.id && (
+             <ReaderSession
+               key={tab.id}
+               isActive={true}
+               initialText={tab.text}
+               onTextChange={(val) => updateTabText(tab.id, val)}
+             />
+           )
         ))}
       </div>
     </div>
