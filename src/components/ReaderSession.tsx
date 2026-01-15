@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useReader } from '../hooks/useReader';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { Sidebar } from './Sidebar';
 import { ReaderDisplay } from './ReaderDisplay';
 import { Controls } from './Controls';
@@ -19,6 +20,7 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
   isActive 
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+  const isMobile = useIsMobile();
   
   const { 
     text, 
@@ -91,54 +93,66 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
       width: '100%', 
       height: '100%', 
       overflow: 'hidden',
-      flexDirection: 'row' 
+      flexDirection: isMobile ? 'column' : 'row' 
     }}>
       
-      <Sidebar 
-        isOpen={isSidebarOpen}
-        text={text}
-        onUpdateText={setText}
-        words={words}
-        currentIndex={currentIndex}
-        onSeek={seek}
-      />
+      {/* On mobile, we want Main (reading) ON TOP, Sidebar (library) ON BOTTOM.
+          But in the DOM structure, we can keep them in order and use Flexbox `order` or just swap them conditionally.
+          Swapping conditionally is cleaner for logic flow here. */}
+      
+      {!isMobile && (
+        <Sidebar 
+          isOpen={isSidebarOpen}
+          text={text}
+          onUpdateText={setText}
+          words={words}
+          currentIndex={currentIndex}
+          onSeek={seek}
+          isMobile={false}
+        />
+      )}
 
       <main style={{ 
         flex: 1, 
         display: 'flex', 
         flexDirection: 'column', 
         position: 'relative',
-        minWidth: 0, // Critical for flex items to prevent overflow
+        minWidth: 0, 
+        minHeight: 0,
         height: '100%',
-        background: 'var(--bg-color)'
+        background: 'var(--bg-color)',
+        // Mobile changes: we don't use 'order' anymore, we use DOM structure for cleaner stacking
+        // On desktop, this is just the main pane.
       }}>
-         {/* Toggle Sidebar Button */}
-        <div style={{ 
-          position: 'absolute', 
-          top: '0.75rem', 
-          left: '0.75rem', 
-          zIndex: 10,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}>
-          <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-            style={{ 
-              padding: '0.5rem', 
-              background: 'rgba(255,255,255,0.05)', 
-              borderRadius: '4px',
-              border: '1px solid var(--border-color)',
-              color: '#888',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-          >
-            {isSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
-          </button>
-        </div>
+         {/* Toggle Sidebar Button - Position differently on mobile */}
+        {!isMobile && (
+          <div style={{ 
+            position: 'absolute', 
+            top: '0.75rem', 
+            left: '0.75rem', 
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+              style={{ 
+                padding: '0.5rem', 
+                background: 'rgba(255,255,255,0.05)', 
+                borderRadius: '4px',
+                border: '1px solid var(--border-color)',
+                color: '#888',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              title="Expand Sidebar"
+            >
+               {isSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+            </button>
+          </div>
+        )}
 
         <div 
           onClick={togglePlay}
@@ -163,6 +177,21 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
           )}
         </div>
 
+        {/* Mobile: Sidebar is injected HERE, between Reader and Controls */}
+        {/* But strictly speaking, if we want Sidebar to act as a collapsible pane that pushes content,
+            and Controls to be pinned bottom, we should put Sidebar here. */}
+        {isMobile && (
+          <Sidebar 
+            isOpen={isSidebarOpen}
+            text={text}
+            onUpdateText={setText}
+            words={words}
+            currentIndex={currentIndex}
+            onSeek={seek}
+            isMobile={true}
+          />
+        )}
+
         <div style={{ flexShrink: 0 }}>
           <Controls 
             isPlaying={isPlaying}
@@ -171,9 +200,13 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
             setWpm={setWpm}
             fontSize={fontSize}
             setFontSize={setFontSize}
+            isMobile={isMobile}
           />
         </div>
       </main>
+
+      {/* Desktop Sidebar (Left side) */}
+      {/* Mobile Sidebar is removed from here */}
     </div>
   );
 };

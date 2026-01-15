@@ -95,7 +95,7 @@ function App() {
         <div style={{
           display: 'flex',
           gap: '0.5rem',
-          overflowX: 'auto',
+          overflowX: 'auto', // Allow lateral scrolling
           flex: 1,
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
