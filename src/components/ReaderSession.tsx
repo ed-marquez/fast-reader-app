@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useReader } from '../hooks/useReader';
 import { Sidebar } from './Sidebar';
 import { ReaderDisplay } from './ReaderDisplay';
@@ -7,15 +7,15 @@ import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 interface ReaderSessionProps {
   initialText: string;
-  onTextChange: (text: string) => void;
+  tabId: string;
+  onUpdateText: (id: string, text: string) => void;
   isActive: boolean;
 }
 
-// We moved the layout inside here. 
-// Actually, `Sidebar` needs to interact with `text`.
 export const ReaderSession: React.FC<ReaderSessionProps> = ({ 
   initialText, 
-  onTextChange,
+  tabId,
+  onUpdateText,
   isActive 
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
@@ -35,17 +35,25 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
     setFontSize 
   } = useReader({ initialWpm: 300 });
 
+  const lastSyncedText = useRef(initialText);
+
   // Sync text with initialText if it changes from outside
   useEffect(() => {
+    // Only update if the incoming initialText is different from what we hold
     if (initialText !== undefined && initialText !== text) {
       setText(initialText);
+      lastSyncedText.current = initialText;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialText]); 
 
   // Sync text changes back to parent
   useEffect(() => {
-    onTextChange(text);
-  }, [text, onTextChange]);
+    if (text !== lastSyncedText.current) {
+      onUpdateText(tabId, text);
+      lastSyncedText.current = text;
+    }
+  }, [text, tabId, onUpdateText]);
 
   // Auto-pause if tab becomes inactive
   useEffect(() => {
@@ -56,9 +64,11 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
 
   const currentWord = words[currentIndex] || '';
 
+  if (!isActive) return null;
+
   return (
     <div style={{ 
-      display: isActive ? 'flex' : 'none', 
+      display: 'flex', 
       width: '100%', 
       height: '100%', 
       overflow: 'hidden',
