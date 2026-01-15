@@ -55,6 +55,27 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
     }
   }, [text, tabId, onUpdateText]);
 
+  // Global keyboard listener for spacebar
+  useEffect(() => {
+    if (!isActive) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't toggle play if user is typing in an input or textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        togglePlay();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isActive, togglePlay]);
+
   // Auto-pause if tab becomes inactive
   useEffect(() => {
     if (!isActive && isPlaying) {
@@ -121,13 +142,6 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
 
         <div 
           onClick={togglePlay}
-          onKeyDown={(e) => {
-            if (e.code === 'Space') {
-              e.preventDefault();
-              togglePlay();
-            }
-          }}
-          tabIndex={0}
           style={{ 
             flex: 1, 
             display: 'flex', 
