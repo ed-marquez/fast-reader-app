@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 export interface UseReaderProps {
+  initialText?: string;
   initialWpm?: number;
   initialFontSize?: number;
 }
 
-export function useReader({ initialWpm = 300, initialFontSize = 48 }: UseReaderProps = {}) {
-  const [text, setText] = useState<string>('');
+export function useReader({ initialText = '', initialWpm = 300, initialFontSize = 48 }: UseReaderProps = {}) {
+  const [text, setText] = useState<string>(initialText);
   const [words, setWords] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);

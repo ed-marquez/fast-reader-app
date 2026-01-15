@@ -170,15 +170,13 @@ function App() {
       {/* Main Content Area */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         {tabs.map(tab => (
-           activeTabId === tab.id && (
-             <ReaderSession
-               key={tab.id}
-               isActive={true}
-               initialText={tab.text}
-               tabId={tab.id}
-               onUpdateText={updateTabText}
-             />
-           )
+           <ReaderSession
+             key={tab.id}
+             isActive={activeTabId === tab.id}
+             initialText={tab.text}
+             tabId={tab.id}
+             onUpdateText={updateTabText}
+           />
         ))}
       </div>
     </div>

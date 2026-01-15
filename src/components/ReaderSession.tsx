@@ -33,9 +33,9 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
     setWpm, 
     fontSize, 
     setFontSize 
-  } = useReader({ initialWpm: 300 });
+  } = useReader({ initialText, initialWpm: 300 });
 
-  const lastSyncedText = useRef(initialText);
+  const lastSyncedText = useRef(text);
 
   // Sync text with initialText if it changes from outside
   useEffect(() => {
@@ -64,11 +64,9 @@ export const ReaderSession: React.FC<ReaderSessionProps> = ({
 
   const currentWord = words[currentIndex] || '';
 
-  if (!isActive) return null;
-
   return (
     <div style={{ 
-      display: 'flex', 
+      display: isActive ? 'flex' : 'none', 
       width: '100%', 
       height: '100%', 
       overflow: 'hidden',
